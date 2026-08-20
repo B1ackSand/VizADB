@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Threading;
+using VizADB.Services;
 using VizADB.ViewModels;
 
 namespace VizADB;
@@ -11,6 +12,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        // scrcpy 等 GPU 窗口切换后 WPF 偶发局部不重绘，强制在窗口激活时刷新画面
+        Activated += (_, _) => InvalidateVisual();
 
         _statusTimer = new DispatcherTimer
         {
@@ -32,5 +36,23 @@ public partial class MainWindow : Window
             }
             _statusTimer.Start();
         };
+    }
+
+    public SettingsService? SettingsService { get; set; }
+    public AdbService? AdbService { get; set; }
+    public ScrcpyService? ScrcpyService { get; set; }
+
+    private void OpenSettings_Click(object sender, RoutedEventArgs e)
+    {
+        if (SettingsService is null || AdbService is null || ScrcpyService is null)
+        {
+            return;
+        }
+
+        var window = new SettingsWindow(SettingsService, AdbService, ScrcpyService)
+        {
+            Owner = this,
+        };
+        window.ShowDialog();
     }
 }

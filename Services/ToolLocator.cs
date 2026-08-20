@@ -6,6 +6,12 @@ public static class ToolLocator
 {
     public static string? FindExecutable(string name)
     {
+        var bundled = Path.Combine(AppContext.BaseDirectory, $"{name}.exe");
+        if (File.Exists(bundled))
+        {
+            return bundled;
+        }
+
         var pathValue = Environment.GetEnvironmentVariable("PATH");
         if (!string.IsNullOrEmpty(pathValue))
         {

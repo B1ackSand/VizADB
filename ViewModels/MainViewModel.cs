@@ -18,8 +18,6 @@ public class MainViewModel : INotifyPropertyChanged
     private bool _isBusy;
     private string _ip = string.Empty;
     private string _port = string.Empty;
-    private string _adbPath;
-    private string _scrcpyPath;
     private string? _targetSerial;
     private string _statusText = "未连接";
     private Brush _statusColor = Brushes.Gray;
@@ -29,8 +27,6 @@ public class MainViewModel : INotifyPropertyChanged
     {
         _adbService = adbService;
         _scrcpyService = scrcpyService;
-        _adbPath = adbService.AdbPath;
-        _scrcpyPath = scrcpyService.ScrcpyPath;
 
         ConnectCommand = new RelayCommand(_ => _ = ConnectAsync(), () => !IsBusy && !IsConnected);
         DisconnectCommand = new RelayCommand(_ => _ = DisconnectAsync(), () => !IsBusy && HasTarget);
@@ -59,30 +55,6 @@ public class MainViewModel : INotifyPropertyChanged
     {
         get => _port;
         set { if (SetField(ref _port, value)) NotifyCanExecuteChanged(); }
-    }
-
-    public string AdbPath
-    {
-        get => _adbPath;
-        set
-        {
-            if (SetField(ref _adbPath, value))
-            {
-                _adbService.AdbPath = value;
-            }
-        }
-    }
-
-    public string ScrcpyPath
-    {
-        get => _scrcpyPath;
-        set
-        {
-            if (SetField(ref _scrcpyPath, value))
-            {
-                _scrcpyService.ScrcpyPath = value;
-            }
-        }
     }
 
     public bool IsBusy
@@ -134,8 +106,17 @@ public class MainViewModel : INotifyPropertyChanged
 
             if (_targetSerial is null)
             {
-                SetStatus("未连接", Brushes.Gray);
-                return;
+                var wireless = devices.FirstOrDefault(d => d.Serial.Contains(':'));
+                if (wireless is not null)
+                {
+                    _targetSerial = wireless.Serial;
+                }
+                else
+                {
+                    SetStatus("未连接", Brushes.Gray);
+                    NotifyCanExecuteChanged();
+                    return;
+                }
             }
 
             var target = devices.FirstOrDefault(d =>
