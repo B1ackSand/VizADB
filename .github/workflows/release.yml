@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    name: Build Windows x64
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.x"
+
+      - name: Publish single-file EXE
+        shell: pwsh
+        run: |
+          dotnet publish VizADB.csproj -c Release -r win-x64 --self-contained `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:EnableCompressionInSingleFile=true `
+            -o ./publish
+
+      - name: Create release archive
+        shell: pwsh
+        run: |
+          Compress-Archive -Path publish/VizADB.exe -DestinationPath publish/VizADB-win-x64.zip
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            publish/VizADB.exe
+            publish/VizADB-win-x64.zip
+          generate_release_notes: true
