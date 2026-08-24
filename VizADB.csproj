@@ -14,4 +14,8 @@
     <ApplicationIcon>Assets\VizADB.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\VizADB.ico" />
+  </ItemGroup>
+
 </Project>
